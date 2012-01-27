@@ -1,7 +1,7 @@
 require 'httparty'
 require 'multi_json'
 require 'logger'
-require 'elastic_searchable/active_record_extensions'
+require 'elastic_searchable/configuration'
 
 module ElasticSearchable
   DEFAULT_INDEX = 'elastic_searchable'
@@ -23,6 +23,7 @@ module ElasticSearchable
     def offline?
       !!@offline
     end
+
     # encapsulate encoding hash into json string
     # support Yajl encoder if installed
     def encode_json(options = {})
