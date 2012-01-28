@@ -1,9 +1,9 @@
 require 'active_record'
 require 'backgrounded'
-require 'elastic_searchable/queries'
-require 'elastic_searchable/callbacks'
-require 'elastic_searchable/index'
-require 'elastic_searchable/paginator'
+require 'elastic_searchable/orms/active_records/queries'
+require 'elastic_searchable/orms/active_records/callbacks'
+require 'elastic_searchable/orms/active_records/index'
+require 'elastic_searchable/orms/active_records/paginator'
 
 module ElasticSearchable
   module ActiveRecordExtensions

@@ -1,9 +1,9 @@
 require 'mongo_mapper'
 require 'backgrounded'
-require 'elastic_searchable/queries'
-require 'elastic_searchable/callbacks'
-require 'elastic_searchable/index'
-require 'elastic_searchable/paginator'
+require 'elastic_searchable/orms/mongo_mapper/queries'
+require 'elastic_searchable/orms/mongo_mapper/callbacks'
+require 'elastic_searchable/orms/mongo_mapper/index'
+require 'elastic_searchable/orms/mongo_mapper/paginator'
 
 module ElasticSearchable
   module MongoMapperExtensions
@@ -39,38 +39,36 @@ module ElasticSearchable
         
         include ElasticSearchable::Indexing::InstanceMethods
         include ElasticSearchable::Callbacks::InstanceMethods
-        # 
-        # backgrounded :update_index_on_create => ElasticSearchable::Callbacks.backgrounded_options, :update_index_on_update => ElasticSearchable::Callbacks.backgrounded_options
-        # class << self
-        #   backgrounded :delete_id_from_index => ElasticSearchable::Callbacks.backgrounded_options
-        # end
-        # 
-        # attr_accessor :index_lifecycle, :percolations
-        # define_model_callbacks :index, :percolate, :only => :after
-        # after_commit :update_index_on_create_backgrounded, :if => :should_index?, :on => :create
-        # after_commit :update_index_on_update_backgrounded, :if => :should_index?, :on => :update
-        # after_commit :delete_from_index, :unless => :elasticsearch_offline?, :on => :destroy
-        # 
-        # class_eval do
-        #   # retuns list of percolation matches found during indexing
-        #   def percolations
-        #     @percolations || []
-        #   end
-        # 
-        #   class << self
-        #     # override default after_index callback definition to support :on option
-        #     # see ActiveRecord::Transactions::ClassMethods#after_commit for example
-        #     def after_index(*args, &block)
-        #       options = args.last
-        #       if options.is_a?(Hash) && options[:on]
-        #         options[:if] = Array.wrap(options[:if])
-        #         options[:if] << "self.index_lifecycle == :#{options[:on]}"
-        #       end
-        #       set_callback(:index, :after, *args, &block)
-        #     end
-        # 
-        #   end
-        # end
+        
+        backgrounded :update_index_on_create => ElasticSearchable::Callbacks.backgrounded_options, :update_index_on_update => ElasticSearchable::Callbacks.backgrounded_options
+        class << self
+          backgrounded :delete_id_from_index => ElasticSearchable::Callbacks.backgrounded_options
+        end
+        
+        attr_accessor :index_lifecycle, :percolations
+        define_model_callbacks :index, :percolate, :only => :after
+        after_save :update_index_on_create_backgrounded, :if => :should_index?, :on => :create
+        after_save :update_index_on_update_backgrounded, :if => :should_index?, :on => :update
+        after_save :delete_from_index, :unless => :elasticsearch_offline?, :on => :destroy
+        
+        class_eval do
+          # retuns list of percolation matches found during indexing
+          def percolations
+            @percolations || []
+          end
+          class << self
+            # override default after_index callback definition to support :on option
+            # see ActiveRecord::Transactions::ClassMethods#after_commit for example
+            def after_index(*args, &block)
+              options = args.last
+              if options.is_a?(Hash) && options[:on]
+                options[:if] = Array.wrap(options[:if])
+                options[:if] << "self.index_lifecycle == :#{options[:on]}"
+              end
+              set_callback(:index, :after, *args, &block)
+            end
+          end
+        end
       end
     end
   end
