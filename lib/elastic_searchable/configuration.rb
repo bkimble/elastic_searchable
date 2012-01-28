@@ -7,8 +7,15 @@ module ElasticSearchable
     
     def setup(config, environment, options={})
       self.config = config
+      include_orm_extensions
     end
     
+    def include_orm_extensions
+      case config['orm']
+        when 'mongo_mapper' then require 'elastic_searchable/mongo_mapper_extensions'
+        else require 'elastic_searchable/active_record_extensions'
+      end
+    end
   end
   
 
